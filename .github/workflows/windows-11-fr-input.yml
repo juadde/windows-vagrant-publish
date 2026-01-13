@@ -7,16 +7,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Enable vagrant repo and update sources
-        run: |
-          wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-          sudo apt -yq update
-          sudo apt -yq upgrade
-      - name: Install dependencies
-        run: sudo apt -yq install qemu-system-x86 xorriso p7zip
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+      # - name: Enable vagrant repo and update sources
+      #   run: |
+      #     wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+      #     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+      #     sudo apt -yq update
+      #     sudo apt -yq upgrade
+      # - name: Install dependencies
+      #   run: sudo apt -yq install qemu-system-x86 xorriso p7zip
+      # - name: Maximize build space
+      #   uses: easimon/maximize-build-space@master
       - name: Check out repository code
         uses: actions/checkout@v6
         with:
@@ -34,10 +34,10 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Build vagrant box
-        env:
-          PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
-        run: PACKER_CACHE_DIR=${{ github.workspace }}/.cache TMPDIR=${{ github.workspace }}/.temp make build-windows-11-24h2-uefi-libvirt
+      # - name: Build vagrant box
+      #   env:
+      #     PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
+      #   run: PACKER_CACHE_DIR=${{ github.workspace }}/.cache TMPDIR=${{ github.workspace }}/.temp make build-windows-11-24h2-uefi-libvirt
       # - name: Upload box and logs as an artifact
       #   uses: actions/upload-artifact@v6
       #   with:
@@ -61,8 +61,8 @@ jobs:
               -H "X-GitHub-Api-Version: 2022-11-28" \
               ${{ github.api_url }}/repos/${{ github.repository }}/releases \
               -d '{"tag_name":"$(jq -r .versions[0].version windows-11*.box.json)","name":"jq -r .versions[0].version windows-11*.box.json","body":"Automatic release"}' \
-              | jq -r .id)/assets?name=windows-11.box" \
-            --data-binary "@windows-11*.box"
+              | jq -r .id)/assets?name=windows-11.txt" \
+            --data-binary "@LIC*E"
       - name: Publish to vagrant registry
         run: | 
           VAGRANT_CLOUD_TOKEN=$(curl --silent --fail --show-error \
