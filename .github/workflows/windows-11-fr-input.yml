@@ -4,8 +4,11 @@ on:
   schedule:
     - cron: 17 10 1,15 * *
 jobs:
+
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       # - name: Enable vagrant repo and update sources
       #   run: |
