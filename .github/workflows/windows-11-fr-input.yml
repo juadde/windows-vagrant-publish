@@ -25,8 +25,6 @@ jobs:
         run: sed -i 's/Locale>en-US</Locale>fr-FR</' ./windows-11-24h2-uefi/autounattend.xml
       - name: Configure version for release
         run: sed -i 's/0.0.0/$(date +%Y%m%d.%H%M%S)/' box-metadata.sh
-      - name: Reduce wget verbosity
-        run: sed -i 's/wget/wget -nv/' provision-drivers.sh
       - name: Create cache dir and temp dir for packer
         run: mkdir -p ${{ github.workspace }}/{.cache,.temp}
       - name: Enable KVM group perms
@@ -63,16 +61,16 @@ jobs:
               -d '{"tag_name":"$(jq -r .versions[0].version windows-11*.box.json)","name":"jq -r .versions[0].version windows-11*.box.json","body":"Automatic release"}' \
               | jq -r .id)/assets?name=windows-11.txt" \
             --data-binary "@LIC*E"
-      - name: Publish to vagrant registry
-        run: | 
-          VAGRANT_CLOUD_TOKEN=$(curl --silent --fail --show-error \
-            --header "Content-Type: application/x-www-form-urlencoded" \
-            --data-urlencode "client_id=${{ secrets.HCP_CLIENT_ID }}" \
-            --data-urlencode "client_secret=${{ secrets.HCP_CLIENT_SECRET }}" \
-            --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "audience=https://api.hashicorp.cloud" \
-            "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token)
-          export VAGRANT_CLOUD_TOKEN
-          vagrant cloud auth login --check
-          vagrant cloud box show kppqju77/windows-11-fr-input
-          vagrant cloud publish kppqju77/windows-11-fr-input "$(jq -r .versions[0].version windows-11*.box.json)" $(jq -r .versions[0].providers[0].name) $(jq -r .versions[0].providers[0].url windows-11*.box.json) --release --no-direct-upload -f
+      # - name: Publish to vagrant registry
+      #   run: | 
+      #     VAGRANT_CLOUD_TOKEN=$(curl --silent --fail --show-error \
+      #       --header "Content-Type: application/x-www-form-urlencoded" \
+      #       --data-urlencode "client_id=${{ secrets.HCP_CLIENT_ID }}" \
+      #       --data-urlencode "client_secret=${{ secrets.HCP_CLIENT_SECRET }}" \
+      #       --data-urlencode "grant_type=client_credentials" \
+      #       --data-urlencode "audience=https://api.hashicorp.cloud" \
+      #       "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token)
+      #     export VAGRANT_CLOUD_TOKEN
+      #     vagrant cloud auth login --check
+      #     vagrant cloud box show kppqju77/windows-11-fr-input
+      #     vagrant cloud publish kppqju77/windows-11-fr-input "$(jq -r .versions[0].version windows-11*.box.json)" $(jq -r .versions[0].providers[0].name) $(jq -r .versions[0].providers[0].url windows-11*.box.json) --release --no-direct-upload -f
