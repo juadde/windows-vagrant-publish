@@ -58,9 +58,9 @@ jobs:
               -H "Authorization: Bearer ${{ github.token }}" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               ${{ github.api_url }}/repos/${{ github.repository }}/releases \
-              -d '{"tag_name":"$(jq -r .versions[0].version windows-11*.box.json)","name":"jq -r .versions[0].version windows-11*.box.json","body":"Automatic release"}' \
+              -d '{"tag_name":"0.0.0","name":"Name0","body":"Automatic release"}' \
               | jq -r .id)/assets?name=windows-11.txt" \
-            --data-binary "@LIC*E"
+            --data-binary "@LICENSE"
       # - name: Publish to vagrant registry
       #   run: | 
       #     VAGRANT_CLOUD_TOKEN=$(curl --silent --fail --show-error \
