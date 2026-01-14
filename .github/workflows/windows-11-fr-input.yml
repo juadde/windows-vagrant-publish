@@ -68,8 +68,9 @@ jobs:
             --data-urlencode "client_secret=${{ secrets.HCP_CLIENT_SECRET }}" \
             --data-urlencode "grant_type=client_credentials" \
             --data-urlencode "audience=https://api.hashicorp.cloud" \
-            "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token) \
-            vagrant cloud publish kppqju77/windows-11-fr-input "$(jq -r .versions[0].version windows-11*.box.json)" $(jq -r .versions[0].providers[0].name) $(jq -r .versions[0].providers[0].url windows-11*.box.json) --release --no-direct-upload -f
+            "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token)
+          export VAGRANT_CLOUD_TOKEN
+          vagrant cloud publish kppqju77/windows-11-fr-input "$(jq -r .versions[0].version windows-11*.box.json)" $(jq -r .versions[0].providers[0].name) $(jq -r .versions[0].providers[0].url windows-11*.box.json) --release --no-direct-upload -f
 
   github-publish:
     runs-on: ubuntu-latest
@@ -77,11 +78,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Get box files
-        uses: actions/download-artifact@master
-        with:
-          github-token: ${{ secrets.GH_PAT }}
-          run-id: 20986623559
+      # - name: Get box files
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     github-token: ${{ secrets.GH_PAT }}
+      #     run-id: 20986623559
       - name: Update runner
         run: |
           sudo apt -yq update
@@ -89,6 +90,7 @@ jobs:
       - name: Create Github release
         id: create_release
         run: |
+          echo "$(jq -r .versions[0].version windows-11*.box.json)"
           echo release_id=$(curl -L \
               -X POST \
               -H "Accept: application/vnd.github+json" \
