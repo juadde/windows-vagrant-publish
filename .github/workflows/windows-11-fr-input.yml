@@ -50,6 +50,7 @@ jobs:
       - name: Get box files
         uses: actions/download-artifact@master
         with:
+          github-token: ${{ secrets.GH_PAT }}
           artifact-ids: 5125894177
       - name: Enable vagrant repo and update sources
         run: |
@@ -79,6 +80,7 @@ jobs:
       - name: Get box files
         uses: actions/download-artifact@master
         with:
+          github-token: ${{ secrets.GH_PAT }}
           run-id: 20986623559
       - name: Update runner
         run: |
