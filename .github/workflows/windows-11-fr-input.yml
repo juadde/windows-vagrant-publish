@@ -95,7 +95,7 @@ jobs:
               -H "Authorization: Bearer ${{ github.token }}" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               ${{ github.api_url }}/repos/${{ github.repository }}/releases \
-              -d {"tag_name":$(jq .versions[0].version windows-11*.box.json),"name":$(jq .versions[0].version windows-11*.box.json),"body":"Automatic release"}
+              -d '{"tag_name":'$(jq .versions[0].version windows-11*.box.json)'',"name":'$(jq .versions[0].version windows-11*.box.json)',"body":"Automatic release"}'
       # - name: Upload box
       #   run: |
       #     echo toto > test.lol
