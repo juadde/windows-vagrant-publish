@@ -87,7 +87,7 @@ jobs:
       #     sudo apt -yq update
       #     sudo apt -yq upgrade
       - name: create release
-        uses: ading2210/gh-large-releases@master
+        uses: ading2210/gh-large-releases@v1
         with:
           files: |
             *.box
