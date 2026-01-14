@@ -90,9 +90,9 @@ jobs:
         uses: ading2210/gh-large-releases@v1
         with:
           files: |
-            *.box
-            *.box.json
             *.log
+            *.box.json
+            *.box
       # - name: Create Github release
       #   id: create_release
       #   run: |
