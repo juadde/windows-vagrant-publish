@@ -50,7 +50,7 @@ jobs:
       - name: Get box files
         uses: actions/download-artifact@master
         with:
-          run-id: 20986623559
+          artifact-ids: 5125894177
       - name: Enable vagrant repo and update sources
         run: |
           wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
