@@ -54,10 +54,13 @@ jobs:
           run-id: 20986623559
       - name: Enable vagrant repo and update sources
         run: |
+          ls -lha
+          cat windows-11*.box.json
+          echo $(jq -r .versions[0].version windows-11*.box.json)
           wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt -yq update
-          sudo apt -yq upgrade
+          # sudo apt -yq upgrade
       - name: Install dependencies
         run: sudo apt -yq install vagrant
       - name: Publish to vagrant registry
@@ -70,6 +73,7 @@ jobs:
             --data-urlencode "audience=https://api.hashicorp.cloud" \
             "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token)
           export VAGRANT_CLOUD_TOKEN
+          vagrant cloud auth login --check
           vagrant cloud publish kppqju77/windows-11-fr-input "$(jq -r .versions[0].version windows-11*.box.json)" $(jq -r .versions[0].providers[0].name) $(jq -r .versions[0].providers[0].url windows-11*.box.json) --release --no-direct-upload -f
 
   github-publish:
@@ -78,15 +82,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      # - name: Get box files
-      #   uses: actions/download-artifact@master
-      #   with:
-      #     github-token: ${{ secrets.GH_PAT }}
-      #     run-id: 20986623559
-      - name: Update runner
-        run: |
-          sudo apt -yq update
-          sudo apt -yq upgrade
+      - name: Get box files
+        uses: actions/download-artifact@master
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          run-id: 20986623559
+      # - name: Update runner
+      #   run: |
+      #     sudo apt -yq update
+      #     sudo apt -yq upgrade
       - name: Create Github release
         id: create_release
         run: |
