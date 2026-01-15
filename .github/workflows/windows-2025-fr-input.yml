@@ -1,0 +1,68 @@
+name: Build and publish Windows 2025 (UEFI) FR input
+on:
+  schedule:
+    - cron: 17 10 8,22 * *
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update runner
+        run: |
+          sudo apt -yq update
+          sudo apt -yq upgrade
+      - name: Install dependencies
+        run: sudo apt -yq install qemu-system-x86 xorriso p7zip
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+      - name: Check out repository code
+        uses: actions/checkout@master
+        with:
+          repository: rgl/windows-vagrant
+      - name: Change locales to fr-FR
+        run: sed -i 's/Locale>en-US</Locale>fr-FR</' ./windows-2025-uefi/autounattend.xml
+      - name: Configure version for release
+        run: sed -i 's/0.0.0/$(date +%Y%m%d.%H%M%S)/' box-metadata.sh
+      - name: Create cache dir and temp dir for packer
+        run: mkdir -p ${{ github.workspace }}/{.cache,.temp}
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Build vagrant box
+        env:
+          PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
+        run: PACKER_CACHE_DIR=${{ github.workspace }}/.cache TMPDIR=${{ github.workspace }}/.temp make build-windows-2025-uefi-libvirt
+      - name: Upload box and logs as an artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: box
+          path: |
+            *.box
+            *.box.json
+            *.log
+
+  vagrant-publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Get box files
+        uses: actions/download-artifact@master
+      - name: Enable vagrant repo, update sources and runner
+        run: |
+          wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt -yq update
+          sudo apt -yq upgrade
+      - name: Install dependencies
+        run: sudo apt -yq install vagrant
+      - name: Publish to vagrant registry
+        run: | 
+          VAGRANT_CLOUD_TOKEN=$(curl --silent --fail --show-error \
+            --header "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "client_id=${{ secrets.HCP_CLIENT_ID }}" \
+            --data-urlencode "client_secret=${{ secrets.HCP_CLIENT_SECRET }}" \
+            --data-urlencode "grant_type=client_credentials" \
+            --data-urlencode "audience=https://api.hashicorp.cloud" \
+            "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token) \
+            vagrant cloud publish kppqju77/windows-2025-fr-input $(jq -r .versions[0].version *.box.json) $(jq -r .versions[0].providers[0].name *.box.json) $(jq -r .versions[0].providers[0].url *.box.json) --release --no-direct-upload -f
