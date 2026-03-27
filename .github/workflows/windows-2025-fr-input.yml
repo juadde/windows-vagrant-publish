@@ -12,8 +12,6 @@ jobs:
           sudo apt -yq upgrade
       - name: Install dependencies
         run: sudo apt -yq install qemu-system-x86 xorriso p7zip
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
       - name: Check out repository code
         uses: actions/checkout@master
         with:
