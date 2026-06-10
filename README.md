@@ -13,7 +13,7 @@ Timezone still need to be configured through your ```Vagrantfile``` with this ki
 tzutil /s "Romance Standard Time"
 ```
 
-A new version is built every two weeks. The version numbering is based on the date and time the build has been created.
+A new version is built every two weeks. The version numbering is based on the date and time the build has been created, and the run number of the CI/CD.
 
 ## Windows 11
 

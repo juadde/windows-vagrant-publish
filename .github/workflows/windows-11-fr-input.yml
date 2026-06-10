@@ -1,5 +1,6 @@
 name: Build and publish Windows 11 (UEFI) FR input
 on:
+  workflow_dispatch:
   schedule:
     - cron: 17 10 1,15 * *
 jobs:
@@ -19,7 +20,7 @@ jobs:
       - name: Change locales to fr-FR
         run: sed -i 's/Locale>en-US</Locale>fr-FR</' ./windows-11-24h2-uefi/autounattend.xml
       - name: Configure version for release
-        run: sed -i 's/0.0.0/$(date +%Y%m%d.%H%M%S)/' box-metadata.sh
+        run: sed -i 's/0.0.0/$(date +%Y%m%d.${{ github.run_number }})/' box-metadata.sh
       - name: Create cache dir and temp dir for packer
         run: mkdir -p ${{ github.workspace }}/{.cache,.temp}
       - name: Enable KVM group perms
