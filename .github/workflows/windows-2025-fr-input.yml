@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: 17 10 8,22 * *
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt -yq install qemu-system-x86 xorriso p7zip
       - name: Check out repository code
-        uses: actions/checkout@master
+        uses: actions/checkout@v6
         with:
           repository: rgl/windows-vagrant
       - name: Change locales to fr-FR
@@ -33,7 +35,7 @@ jobs:
           PACKER_GITHUB_API_TOKEN: ${{ secrets.PACKER_GITHUB_API_TOKEN }}
         run: PACKER_CACHE_DIR=${{ github.workspace }}/.cache TMPDIR=${{ github.workspace }}/.temp make build-windows-2025-uefi-libvirt
       - name: Upload box and logs as an artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v6
         with:
           name: box
           path: |
@@ -46,7 +48,7 @@ jobs:
     needs: build
     steps:
       - name: Get box files
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v7
       - name: Enable vagrant repo, update sources and runner
         run: |
           wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -56,11 +58,14 @@ jobs:
       - name: Install dependencies
         run: sudo apt -yq install vagrant
       - name: Publish to vagrant registry
+        env:
+          HCP_CLIENT_ID: ${{ secrets.HCP_CLIENT_ID }}
+          HCP_CLIENT_SECRET: ${{ secrets.HCP_CLIENT_SECRET }}
         run: | 
           VAGRANT_CLOUD_TOKEN=$(curl --silent --fail --show-error \
             --header "Content-Type: application/x-www-form-urlencoded" \
-            --data-urlencode "client_id=${{ secrets.HCP_CLIENT_ID }}" \
-            --data-urlencode "client_secret=${{ secrets.HCP_CLIENT_SECRET }}" \
+            --data-urlencode "client_id=${HCP_CLIENT_ID}" \
+            --data-urlencode "client_secret=${HCP_CLIENT_SECRET}" \
             --data-urlencode "grant_type=client_credentials" \
             --data-urlencode "audience=https://api.hashicorp.cloud" \
             "https://auth.idp.hashicorp.com/oauth2/token" | jq -r .access_token) \
