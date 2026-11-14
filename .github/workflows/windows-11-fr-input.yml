@@ -40,6 +40,8 @@ jobs:
             *.box
             *.box.json
             *.log
+          # Only needed by the publish job of the same run: do not keep multi-GB boxes for 90 days
+          retention-days: 1
 
   vagrant-publish:
     runs-on: ubuntu-latest
